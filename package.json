@@ -6,9 +6,15 @@
   "author": "",
   "license": "ISC",
   "keywords": [],
+  "sideEffects": false,
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "check": "pnpm lint && pnpm format",
+    "check:fix": "pnpm lint:fix && pnpm format:fix"
   },
   "devDependencies": {
     "@antfu/eslint-config": "8.3.0",

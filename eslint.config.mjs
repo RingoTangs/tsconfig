@@ -1,10 +1,10 @@
-import antfu from "@antfu/eslint-config";
-import prettier from "eslint-config-prettier";
+import antfu from '@antfu/eslint-config'
+import prettier from 'eslint-config-prettier'
 
 export default antfu({
-  type: "lib",
+  type: 'lib',
   stylistic: false,
   formatters: false,
   gitignore: true,
-  ignores: ["**/pnpm-lock.yaml"],
-}).append(prettier);
+  ignores: ['**/pnpm-lock.yaml'],
+}).append(prettier)
