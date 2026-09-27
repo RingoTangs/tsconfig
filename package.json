@@ -2,26 +2,51 @@
   "name": "@ringotangs/tsconfig",
   "version": "0.1.1",
   "packageManager": "pnpm@10.24.0",
-  "description": "",
+  "description": "Shared TypeScript configuration for RingoTangs projects.",
   "author": "RingoTangs",
-  "license": "ISC",
-  "keywords": [],
-  "sideEffects": false,
+  "license": "MIT",
+  "homepage": "https://github.com/RingoTangs/tsconfig#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RingoTangs/tsconfig.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RingoTangs/tsconfig/issues"
+  },
+  "keywords": [
+    "typescript",
+    "tsconfig",
+    "configuration",
+    "shared-config"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "tsconfig": "./src/tsconfig.base.json",
   "exports": {
     ".": "./src/tsconfig.base.json"
   },
+  "files": [
+    "src/tsconfig.base.json"
+  ],
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "check": "pnpm lint && pnpm format",
-    "check:fix": "pnpm lint:fix && pnpm format:fix"
+    "typecheck": "tsc --project test/tsconfig.json",
+    "check": "pnpm lint && pnpm format && pnpm typecheck",
+    "check:fix": "pnpm lint:fix && pnpm format:fix && pnpm typecheck",
+    "prepublishOnly": "pnpm check"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.8.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "8.3.0",
     "eslint": "10.11.0",
     "eslint-config-prettier": "10.1.8",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.3"
   }
 }
