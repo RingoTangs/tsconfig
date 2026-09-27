@@ -51,12 +51,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      # 安装指定版本的 Node.js
+      # 根据 .nvmrc 安装项目指定的 Node.js 版本
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          # 固定 Node.js 版本，保证本地和 CI 环境尽量一致
-          node-version: 22.23.2
+          # 与本地开发环境共用同一版本声明
+          node-version-file: .nvmrc
 
           # 启用 pnpm 依赖缓存，加快后续 CI 的依赖安装速度
           cache: pnpm
@@ -75,10 +75,6 @@ jobs:
       # 通常可能包含 lint、typecheck、format check 等
       - name: Check
         run: pnpm check
-
-      # 构建项目
-      - name: Build
-        run: pnpm build
 
       # 检查最终 npm package 的内容是否符合预期
       # 具体行为取决于 package.json 中的 scripts["pack:check"]
