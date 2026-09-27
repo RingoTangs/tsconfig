@@ -1,0 +1,19 @@
+{
+  "name": "@ringotangs/tsconfig",
+  "version": "0.1.1",
+  "packageManager": "pnpm@10.24.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "8.3.0",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "^3.9.9"
+  }
+}
