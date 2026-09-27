@@ -1,0 +1,31 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+
+This repository publishes a shared TypeScript configuration as `@ringotangs/tsconfig`. The package entry point in `package.json` exports `src/tsconfig.base.json`; keep reusable compiler options in that file. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. There are currently no generated assets, application sources, or test directories.
+
+## Build, Test, and Development Commands
+
+Use pnpm 10, matching the `packageManager` field and committed `pnpm-lock.yaml`.
+
+- `pnpm install` installs the development toolchain.
+- `pnpm lint` checks repository files with ESLint and the Antfu configuration.
+- `pnpm format` verifies Prettier formatting without changing files.
+- `pnpm check` runs both lint and formatting checks; run it before opening a pull request.
+- `pnpm check:fix` applies ESLint and Prettier fixes.
+
+There is no build step: consumers load the JSON preset directly through the package export.
+
+## Coding Style & Naming Conventions
+
+Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line endings, single quotes in JavaScript, no semicolons, and trailing commas where supported. Let Prettier handle layout and ESLint handle code-quality rules. Use lower-case, descriptive configuration filenames; follow the existing dotted pattern for variants, such as `tsconfig.base.json`. Keep compiler-option comments concise and focused on practical behavior or tradeoffs.
+
+## Testing Guidelines
+
+No automated test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. When changing `src/tsconfig.base.json`, also validate it in a representative TypeScript consumer—for example, extend `@ringotangs/tsconfig` from a temporary `tsconfig.json` and run that project's `tsc --noEmit`. Add focused fixtures or a test script if a change introduces behavior that static linting cannot verify.
+
+## Commit & Pull Request Guidelines
+
+Recent history uses Conventional Commit-style subjects such as `feat: add Prettier and ESLint configuration files` and `fix: update author field`. Use a short imperative subject with an appropriate type (`feat:`, `fix:`, `docs:`, or `chore:`), and keep each commit focused.
+
+Pull requests should explain the motivation, list affected compiler options or tooling, and report validation performed. Link relevant issues when available. Screenshots are only useful for editor-facing changes; for configuration changes, include a small before/after example or TypeScript diagnostic instead.
