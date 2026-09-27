@@ -38,7 +38,7 @@
     "verbatimModuleSyntax": true,
     /*
      * 禁止大多数需要 TypeScript 生成运行时代码的专有语法，
-     * 包括 enum、带值的 namespace、构造函数参数属性和 import =。
+     * 包括 enum、带值的 namespace、构造函数参数属性和 import = / export =。
      * 例如：const count: number = 0 可以，去掉 : number 后仍是正常代码。
      * enum Status { Ready, Done } 不可以，因为它需要转换成额外的 JavaScript 代码。
      */
