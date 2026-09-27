@@ -24,12 +24,6 @@ permissions:
 jobs:
   publish:
     name: Publish
-    # 模板仓库本身禁止发布
-    # 从 GitHub Template 创建新项目后，
-    # github.repository 会变成新仓库名称，
-    # 因此发布工作流会自动启用，无需修改此文件。
-    if: github.repository != 'RingoTangs/tsdown-template'
-
     runs-on: ubuntu-latest
 
     # 防止异常情况下发布任务长时间占用 Runner
@@ -56,8 +50,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          # 固定 Node.js 版本，保证 CI / Release 环境可预测
-          node-version: 22.23.2
+          # 与本地开发环境和普通 CI 共用同一版本声明
+          node-version-file: .nvmrc
 
           # npm 官方 Registry
           registry-url: https://registry.npmjs.org/
@@ -151,17 +145,15 @@ jobs:
       #   NODE_AUTH_TOKEN
       #   secrets.NPM_TOKEN
       #
-      # package.json 中的 prepublishOnly 会在 npm publish 前自动执行。
+      # npm publish 会先自动执行 package.json 中的 prepublishOnly：
       #
-      # 例如你当前：
+      # pnpm check
+      #   - lint
+      #   - format check
+      #   - TypeScript consumer typecheck
+      # pnpm pack:check
+      #   - npm pack --dry-run
       #
-      # "prepublishOnly":
-      #   "pnpm check && pnpm build && pnpm pack:check"
-      #
-      # 因此真正发布之前仍会进行：
-      #
-      # lint / format / typecheck / test
-      # build
-      # npm package 内容检查
+      # 上述检查全部通过后才会正式发布。
       - name: Publish package
         run: npm publish --access public --tag "${{ steps.dist-tag.outputs.tag }}"
