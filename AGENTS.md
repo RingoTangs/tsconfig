@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository publishes a shared TypeScript configuration as `@ringotangs/tsconfig`. The package entry point in `package.json` exports `src/tsconfig.base.json`; keep reusable compiler options in that file. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. There are currently no generated assets, application sources, or test directories.
+This repository publishes a shared TypeScript configuration as `@ringotangs/tsconfig`. The package entry point in `package.json` exports `src/tsconfig.base.json`; keep reusable compiler options in that file. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. The `test/` directory contains a minimal consumer fixture that verifies package-level configuration resolution.
 
 ## Build, Test, and Development Commands
 
@@ -11,7 +11,8 @@ Use pnpm 10, matching the `packageManager` field and committed `pnpm-lock.yaml`.
 - `pnpm install` installs the development toolchain.
 - `pnpm lint` checks repository files with ESLint and the Antfu configuration.
 - `pnpm format` verifies Prettier formatting without changing files.
-- `pnpm check` runs both lint and formatting checks; run it before opening a pull request.
+- `pnpm typecheck` verifies that TypeScript can load the shared configuration through the package name.
+- `pnpm check` runs lint, formatting, and type-checking checks; run it before opening a pull request.
 - `pnpm check:fix` applies ESLint and Prettier fixes.
 
 There is no build step: consumers load the JSON preset directly through the package export.
@@ -22,7 +23,7 @@ Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line end
 
 ## Testing Guidelines
 
-No automated test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. When changing `src/tsconfig.base.json`, also validate it in a representative TypeScript consumer—for example, extend `@ringotangs/tsconfig` from a temporary `tsconfig.json` and run that project's `tsc --noEmit`. Add focused fixtures or a test script if a change introduces behavior that static linting cannot verify.
+No automated test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. Keep the fixture in `test/` focused on confirming that `@ringotangs/tsconfig` resolves and loads successfully. Add focused fixtures if a change introduces behavior that static linting cannot verify.
 
 ## Commit & Pull Request Guidelines
 
