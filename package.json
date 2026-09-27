@@ -37,7 +37,8 @@
     "typecheck": "tsc --project test/tsconfig.json",
     "check": "pnpm lint && pnpm format && pnpm typecheck",
     "check:fix": "pnpm lint:fix && pnpm format:fix && pnpm typecheck",
-    "prepublishOnly": "pnpm check"
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "pnpm check && pnpm pack:check"
   },
   "peerDependencies": {
     "typescript": ">=5.8.0"
