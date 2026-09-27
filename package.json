@@ -2,7 +2,7 @@
   "name": "@ringotangs/tsconfig",
   "version": "0.1.1",
   "packageManager": "pnpm@10.24.0",
-  "description": "Shared TypeScript configuration for RingoTangs projects.",
+  "description": "The simplest way to set up your tsconfig.json.",
   "author": "RingoTangs",
   "license": "MIT",
   "homepage": "https://github.com/RingoTangs/tsconfig#readme",
