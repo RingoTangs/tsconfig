@@ -1,0 +1,4 @@
+{
+  "extends": "@ringotangs/tsconfig",
+  "include": ["index.ts"]
+}
