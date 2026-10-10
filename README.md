@@ -1,36 +1,22 @@
 # @ringotangs/tsconfig
 
-Opinionated, overridable TypeScript configurations for RingoTangs projects: a Bundler preset and a NestJS preset for Node.js, sharing a common base.
+Shared TypeScript configurations for Bundler and NestJS projects. Requires TypeScript 5.8 or newer.
 
-## Design
+| Entry                          | Use                                                                                |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `@ringotangs/tsconfig`         | Default Bundler configuration for Vite, Vue, React, and TypeScript libraries       |
+| `@ringotangs/tsconfig/bundler` | Same configuration, with an explicit Bundler entry                                 |
+| `@ringotangs/tsconfig/nestjs`  | NestJS configuration with NodeNext, traditional decorators, and decorator metadata |
 
-| Entry                          | Intended use                                      | Module handling                    | Output                     |
-| ------------------------------ | ------------------------------------------------- | ---------------------------------- | -------------------------- |
-| `@ringotangs/tsconfig`         | Vite, Vue, React, and modern TypeScript libraries | `ESNext` with `bundler` resolution | Type checking only         |
-| `@ringotangs/tsconfig/bundler` | Explicit alias for the default Bundler preset     | `ESNext` with `bundler` resolution | Type checking only         |
-| `@ringotangs/tsconfig/nestjs`  | NestJS applications                               | `NodeNext` modules and resolution  | JavaScript and source maps |
+## Bundler
 
-Both presets extend the internal `src/tsconfig.base.json`, which holds ES2020 settings, strict checks, class field semantics, module detection, and single-file transpilation checks. The base is included in the package for inheritance but has no public entry. The default entry continues to load the Bundler preset, preserving existing consumer behavior.
-
-The NestJS preset enables traditional decorators, decorator metadata, and constructor parameter properties. It disables strict property initialization for DTOs and framework-assigned properties while retaining other strict checks.
-
-Both configurations use ES2020 as the default `target` and `lib`. Consumers can override them to match their runtime. The library settings provide types, not runtime APIs or polyfills.
-
-## Requirements
-
-- TypeScript 5.8 or newer
-
-## Installation
-
-Install the configuration and TypeScript as development dependencies:
+Install:
 
 ```sh
 pnpm add -D @ringotangs/tsconfig typescript
 ```
 
-## Bundler usage
-
-Extend the package from your project's `tsconfig.json` and define the files that belong to your project:
+Create `tsconfig.json`:
 
 ```json
 {
@@ -39,33 +25,19 @@ Extend the package from your project's `tsconfig.json` and define the files that
 }
 ```
 
-For an explicit Bundler entry, use `"extends": "@ringotangs/tsconfig/bundler"`; it is equivalent to the default entry.
+You can also use `"extends": "@ringotangs/tsconfig/bundler"`. Both entries check types without emitting files; your build tool handles JavaScript output.
 
-Project-specific compiler options can be added under `compilerOptions` when needed. They override the corresponding shared settings.
+Both presets default to ES2020 for `target` and `lib`. Override compiler options to match your project. Browser projects can add `"lib": ["ES2020", "DOM", "DOM.Iterable"]`; configure JSX and framework-specific options as needed.
 
-For example, a browser project can add DOM library types:
+## NestJS
 
-```json
-{
-  "extends": "@ringotangs/tsconfig",
-  "compilerOptions": {
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
-  },
-  "include": ["src"]
-}
-```
-
-Configure JSX and framework-specific settings in the consuming project as needed.
-
-## NestJS usage
-
-Install Node.js types alongside the configuration and TypeScript:
+Install the configuration, TypeScript, and Node.js types in your NestJS project:
 
 ```sh
 pnpm add -D @ringotangs/tsconfig typescript @types/node
 ```
 
-Extend the NestJS entry and specify your project's source and output directories:
+Create `tsconfig.json`:
 
 ```json
 {
@@ -79,41 +51,57 @@ Extend the NestJS entry and specify your project's source and output directories
 }
 ```
 
-The preset does not set `rootDir`, `outDir`, path aliases, declaration output, incremental compilation, or test framework types. Configure these in the consuming project. If you use Jest or Vitest globals, configure their types in your test configuration. The preset does not restrict automatically included `@types` packages with a `types` list.
+This preset enables JavaScript and source map output. Set your own output directory and configure test framework types separately.
 
-### ESM
+### ESM and CommonJS
 
-Set `"type": "module"` in the consuming project's `package.json`. With NodeNext, ordinary `.ts` files then compile to ESM; `.mts` files are always ESM and emit `.mjs`.
+NodeNext uses your project's `package.json` to determine the module format for ordinary `.ts` files:
 
-Native Node.js ESM requires extensions on relative imports. In TypeScript source, reference the emitted filename:
+- `"type": "module"`: ESM.
+- `"type": "commonjs"` or no `type` field: CommonJS.
+
+For native Node.js ESM, relative imports need the output file's extension, usually `.js`, even in TypeScript source:
 
 ```ts
 import { UsersService } from './users.service.js'
 ```
 
-TypeScript resolves that import to the `.ts` source and preserves `.js` in the output. For `.mts` sources, use `.mjs` instead. The generated output must run within the corresponding package module scope.
+TypeScript resolves this to `users.service.ts` and keeps `.js` in the output. Keep the matching package module type when running the output. Explicit `.mts` and `.cts` files use ESM and CommonJS respectively; `.mts` imports use the emitted `.mjs` extension.
 
-### CommonJS
+### Property initialization
 
-Set `"type": "commonjs"` in the consuming project's `package.json` (or omit `type`). Ordinary `.ts` files then compile to CommonJS; `.cts` files are always CommonJS and emit `.cjs`. Use the same NestJS configuration shown above; overriding `module` is unnecessary.
+NestJS defaults to `strictPropertyInitialization: false` because DTO and injected properties may be assigned by the framework rather than the constructor. Other strict checks remain enabled. This does not guarantee that a property has a value at runtime.
 
-The preset's `verbatimModuleSyntax: false` allows TypeScript to convert ES import/export syntax into `require` and `exports` for CommonJS files.
+To require property initialization, add `strictPropertyInitialization: true` to your project's configuration:
 
-## Transpilation and imports
+```json
+{
+  "extends": "@ringotangs/tsconfig/nestjs",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "strictPropertyInitialization": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}
+```
 
-Both entries enable `isolatedModules` to check compatibility with single-file transpilation used by esbuild, SWC, and Babel. This option does not select a transpiler or guarantee that a transpiler emits decorator metadata. NestJS builds using another compiler must configure its traditional decorator and metadata support separately.
+## Key options
 
-The Bundler preset enables `verbatimModuleSyntax`: imports and exports marked with `type` are erased, while value imports are preserved and ES module syntax is not converted to CommonJS. Use explicit type-only imports for interfaces and other types.
+| Option                 | Purpose                                                                                                       | Bundler | NestJS  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| `isolatedModules`      | Checks for code that tools such as esbuild, SWC, or Babel cannot safely compile one file at a time.           | `true`  | `true`  |
+| `verbatimModuleSyntax` | When enabled, preserves imports and exports without a `type` modifier and prevents conversion to CommonJS.    | `true`  | `false` |
+| `erasableSyntaxOnly`   | Rejects TypeScript features that need extra runtime code, such as enums and constructor parameter properties. | `true`  | `false` |
 
-The NestJS preset disables `verbatimModuleSyntax` to allow module conversion and TypeScript's type-based import elision. Services and DTO classes used in dependency injection or validation metadata need ordinary value imports, not `import type`. Interfaces have no runtime constructor; use explicit injection tokens when injecting interface-typed dependencies.
+Use type-only imports for types in Bundler projects. NestJS allows CommonJS conversion and constructor parameter properties; keep ordinary imports for service and DTO classes used in runtime metadata.
 
-The Bundler preset also enables `erasableSyntaxOnly`, disallowing constructs that require TypeScript-specific runtime transformations, such as enums and constructor parameter properties. The NestJS preset explicitly disables this setting so code such as `constructor(private readonly service: UsersService)` can compile.
+`isolatedModules` does not enable decorator metadata in other compilers. If you build NestJS with SWC or another compiler, configure its decorator and metadata support separately.
 
-## Validation
+## Repository checks
 
-`pnpm check` runs linting, formatting, Bundler and NestJS fixture type checks, and Vitest tests. Consumer fixtures are organized in parallel under `test/fixtures/bundler/` and `test/fixtures/nestjs/`, with the Vitest entry at `test/config.test.mjs`. The tests pack the actual npm package, resolve the default, Bundler, and NestJS entries from temporary consumer projects, and compile and execute NestJS-style ESM/CommonJS fixtures to verify decorator metadata and parameter properties. They do not start a NestJS server. Build output and tarballs stay in temporary directories and are cleaned up after testing.
-
-`pnpm pack:check` also previews the published file list without creating a tarball in the repository.
+- `pnpm check`: runs linting, formatting checks, type checks, and Vitest tests.
+- `pnpm pack:check`: previews the npm package contents without creating a tarball.
 
 ## License
 
