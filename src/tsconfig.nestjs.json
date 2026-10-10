@@ -5,7 +5,6 @@
     "experimentalDecorators": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "types": ["node"],
     "strictPropertyInitialization": false,
     "declaration": true,
     "noEmit": false,
