@@ -1,6 +1,6 @@
 {
   "name": "@ringotangs/tsconfig",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "packageManager": "pnpm@10.24.0",
   "description": "The simplest way to set up your tsconfig.json.",
   "author": "RingoTangs",
