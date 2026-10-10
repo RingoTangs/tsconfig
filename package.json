@@ -24,10 +24,12 @@
   },
   "tsconfig": "./src/tsconfig.base.json",
   "exports": {
-    ".": "./src/tsconfig.base.json"
+    ".": "./src/tsconfig.base.json",
+    "./nestjs": "./src/tsconfig.nestjs.json"
   },
   "files": [
-    "src/tsconfig.base.json"
+    "src/tsconfig.base.json",
+    "src/tsconfig.nestjs.json"
   ],
   "scripts": {
     "lint": "eslint .",
