@@ -31,10 +31,10 @@
     /* 改善与 CommonJS 模块的导入兼容性，例如使用默认导入加载这类模块。 */
     "esModuleInterop": true,
 
-    /* 检查代码是否适合逐文件转译，便于配合 SWC 等工具；不会自行切换编译器。 */
-    "isolatedModules": true,
-
-    /* 允许 TypeScript 省略仅用于类型的导入，并按目标模块格式转换导入导出语法。 */
+    /*
+     * 允许 TypeScript 省略仅用于类型的导入，并按目标模块格式转换导入导出语法。
+     * 例如 NodeNext 判断文件为 CommonJS 时，可将 ES 模块语法转换为 require 和 exports。
+     */
     "verbatimModuleSyntax": false,
 
     /*

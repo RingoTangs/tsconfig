@@ -40,6 +40,9 @@
     /* 默认只检查类型；JavaScript、声明文件等产物由项目构建流程生成，需要 tsc emit 时可覆盖。 */
     "noEmit": true,
 
+    /* 检查代码是否适合 esbuild、SWC、Babel 等工具的单文件转译方式。 */
+    "isolatedModules": true,
+
     /*
      * 输出时删除带 type 修饰的导入导出，并保留其余模块语法。
      * 不再根据类型用法省略导入，也不将 ES 模块语法改写为其他格式。

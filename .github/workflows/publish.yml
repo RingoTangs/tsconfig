@@ -151,6 +151,7 @@ jobs:
       #   - lint
       #   - format check
       #   - TypeScript consumer typecheck
+      #   - Packed-package, ESM/CommonJS, and decorator metadata tests
       # pnpm pack:check
       #   - npm pack --dry-run
       #

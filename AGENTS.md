@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository publishes one shared TypeScript base configuration as `@ringotangs/tsconfig`. The package entry point in `package.json` exports `src/tsconfig.base.json`; keep reusable compiler options in that file and let consumers override environment-specific settings. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. The `test/` directory contains a minimal consumer fixture that verifies package-level configuration resolution.
+This repository publishes a Bundler-first TypeScript base configuration as `@ringotangs/tsconfig` and a NestJS preset as `@ringotangs/tsconfig/nestjs`. The exports in `package.json` point to `src/tsconfig.base.json` and `src/tsconfig.nestjs.json`; the NestJS preset extends the base. Keep reusable compiler options in the base and let consumers override project-specific settings. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. The `test/` directory contains the original consumer fixture and automated package, ESM/CommonJS, and decorator metadata checks.
 
 ## Build, Test, and Development Commands
 
@@ -12,18 +12,20 @@ Use pnpm 10, matching the `packageManager` field and committed `pnpm-lock.yaml`.
 - `pnpm lint` checks repository files with ESLint and the Antfu configuration.
 - `pnpm format` verifies Prettier formatting without changing files.
 - `pnpm typecheck` verifies that TypeScript can load the shared configuration through the package name.
-- `pnpm check` runs lint, formatting, and type-checking checks; run it before opening a pull request.
+- `pnpm test` runs lightweight Node.js tests against the packed package and temporary consumers.
+- `pnpm check` runs lint, formatting, type-checking, and automated tests; run it before opening a pull request.
 - `pnpm check:fix` applies ESLint and Prettier fixes.
+- `pnpm pack:check` previews the npm package file list.
 
-There is no build step: consumers load the single JSON base configuration directly through the package export.
+There is no package build step: consumers load the JSON configurations directly through package exports. Tests compile fixtures into temporary directories and remove their output and tarballs after completion.
 
 ## Coding Style & Naming Conventions
 
-Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line endings, single quotes in JavaScript, no semicolons, and trailing commas where supported. Let Prettier handle layout and ESLint handle code-quality rules. Keep the shared configuration at `src/tsconfig.base.json`; do not introduce environment-specific presets when consumers can override the base. Keep compiler-option comments concise and focused on practical behavior or tradeoffs.
+Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line endings, single quotes in JavaScript, no semicolons, and trailing commas where supported. Let Prettier handle layout and ESLint handle code-quality rules. Keep shared options in `src/tsconfig.base.json` and NestJS-specific overrides in `src/tsconfig.nestjs.json`; avoid duplicate inherited options and additional presets without a concrete need. Keep compiler-option comments concise and focused on practical behavior or tradeoffs.
 
 ## Testing Guidelines
 
-No automated test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. Keep the fixture in `test/` focused on confirming that `@ringotangs/tsconfig` resolves and loads successfully. Add focused fixtures if a change introduces behavior that static linting cannot verify.
+Tests use Node.js's built-in test runner and the existing TypeScript dependency; no external test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. Preserve the original package-resolution fixture and keep additional fixtures focused on compiler behavior. Package tests must verify both published configurations and compile ESM/CommonJS consumers through the package name. Verify runtime decorator metadata and constructor parameter properties without requiring a full NestJS installation. Keep generated output outside the repository and clean up temporary directories even when tests fail.
 
 ## Commit & Pull Request Guidelines
 

@@ -37,8 +37,9 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "typecheck": "tsc --project test/tsconfig.json",
-    "check": "pnpm lint && pnpm format && pnpm typecheck",
-    "check:fix": "pnpm lint:fix && pnpm format:fix && pnpm typecheck",
+    "test": "node --test test/config.test.mjs",
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
+    "check:fix": "pnpm lint:fix && pnpm format:fix && pnpm typecheck && pnpm test",
     "pack:check": "npm pack --dry-run",
     "prepublishOnly": "pnpm check && pnpm pack:check"
   },

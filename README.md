@@ -1,10 +1,17 @@
 # @ringotangs/tsconfig
 
-An opinionated, overridable TypeScript base configuration for RingoTangs projects. It defaults to modern bundler-based projects, but is not tied to Vite or any other build tool.
+Opinionated, overridable TypeScript configurations for RingoTangs projects: a Bundler-first base and a NestJS preset for Node.js.
 
 ## Design
 
-This package deliberately publishes one shared base configuration rather than separate browser, Vite, Node, or library presets. Projects extend the base and override the options required by their runtime and build process.
+| Entry                         | Intended use                                      | Module handling                    | Output                     |
+| ----------------------------- | ------------------------------------------------- | ---------------------------------- | -------------------------- |
+| `@ringotangs/tsconfig`        | Vite, Vue, React, and modern TypeScript libraries | `ESNext` with `bundler` resolution | Type checking only         |
+| `@ringotangs/tsconfig/nestjs` | NestJS applications                               | `NodeNext` modules and resolution  | JavaScript and source maps |
+
+The NestJS preset extends the base and enables traditional decorators, decorator metadata, and constructor parameter properties. It disables strict property initialization for DTOs and framework-assigned properties while retaining other strict checks.
+
+Both configurations use ES2020 as the default `target` and `lib`. Consumers can override them to match their runtime. The library settings provide types, not runtime APIs or polyfills.
 
 ## Requirements
 
@@ -18,7 +25,7 @@ Install the configuration and TypeScript as development dependencies:
 pnpm add -D @ringotangs/tsconfig typescript
 ```
 
-## Usage
+## Bundler usage
 
 Extend the package from your project's `tsconfig.json` and define the files that belong to your project:
 
@@ -43,7 +50,65 @@ For example, a browser project can add DOM library types:
 }
 ```
 
-Node projects can override module resolution and add the appropriate environment types. Projects that use `tsc` to produce output can override `noEmit` and related output options.
+Configure JSX and framework-specific settings in the consuming project as needed.
+
+## NestJS usage
+
+Install Node.js types alongside the configuration and TypeScript:
+
+```sh
+pnpm add -D @ringotangs/tsconfig typescript @types/node
+```
+
+Extend the NestJS entry and specify your project's source and output directories:
+
+```json
+{
+  "extends": "@ringotangs/tsconfig/nestjs",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}
+```
+
+The preset does not set `rootDir`, `outDir`, path aliases, declaration output, incremental compilation, or test framework types. Configure these in the consuming project. If you use Jest or Vitest globals, configure their types in your test configuration. The preset does not restrict automatically included `@types` packages with a `types` list.
+
+### ESM
+
+Set `"type": "module"` in the consuming project's `package.json`. With NodeNext, ordinary `.ts` files then compile to ESM; `.mts` files are always ESM and emit `.mjs`.
+
+Native Node.js ESM requires extensions on relative imports. In TypeScript source, reference the emitted filename:
+
+```ts
+import { UsersService } from './users.service.js'
+```
+
+TypeScript resolves that import to the `.ts` source and preserves `.js` in the output. For `.mts` sources, use `.mjs` instead. The generated output must run within the corresponding package module scope.
+
+### CommonJS
+
+Set `"type": "commonjs"` in the consuming project's `package.json` (or omit `type`). Ordinary `.ts` files then compile to CommonJS; `.cts` files are always CommonJS and emit `.cjs`. Use the same NestJS configuration shown above; overriding `module` is unnecessary.
+
+The preset's `verbatimModuleSyntax: false` allows TypeScript to convert ES import/export syntax into `require` and `exports` for CommonJS files.
+
+## Transpilation and imports
+
+Both entries enable `isolatedModules` to check compatibility with single-file transpilation used by esbuild, SWC, and Babel. This option does not select a transpiler or guarantee that a transpiler emits decorator metadata. NestJS builds using another compiler must configure its traditional decorator and metadata support separately.
+
+The Bundler base enables `verbatimModuleSyntax`: imports and exports marked with `type` are erased, while value imports are preserved and ES module syntax is not converted to CommonJS. Use explicit type-only imports for interfaces and other types.
+
+The NestJS preset disables `verbatimModuleSyntax` to allow module conversion and TypeScript's type-based import elision. Services and DTO classes used in dependency injection or validation metadata need ordinary value imports, not `import type`. Interfaces have no runtime constructor; use explicit injection tokens when injecting interface-typed dependencies.
+
+The base also enables `erasableSyntaxOnly`, disallowing constructs that require TypeScript-specific runtime transformations, such as enums and constructor parameter properties. NestJS overrides this setting so code such as `constructor(private readonly service: UsersService)` can compile.
+
+## Validation
+
+`pnpm check` runs linting, formatting, the original consumer type check, and lightweight Node.js tests. The tests pack the actual npm package, resolve both entries from temporary consumer projects, and compile and execute NestJS-style ESM/CommonJS fixtures to verify decorator metadata and parameter properties. They do not start a NestJS server. Build output and tarballs stay in temporary directories and are cleaned up after testing.
+
+`pnpm pack:check` also previews the published file list without creating a tarball in the repository.
 
 ## License
 
