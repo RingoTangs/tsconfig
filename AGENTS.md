@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository publishes a Bundler-first TypeScript base configuration as `@ringotangs/tsconfig` and a NestJS preset as `@ringotangs/tsconfig/nestjs`. The exports in `package.json` point to `src/tsconfig.base.json` and `src/tsconfig.nestjs.json`; the NestJS preset extends the base. Keep reusable compiler options in the base and let consumers override project-specific settings. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. The `test/` directory contains the original consumer fixture and automated package, ESM/CommonJS, and decorator metadata checks.
+This repository publishes a Bundler-first TypeScript base configuration as `@ringotangs/tsconfig` and a NestJS preset as `@ringotangs/tsconfig/nestjs`. The exports in `package.json` point to `src/tsconfig.base.json` and `src/tsconfig.nestjs.json`; the NestJS preset extends the base. Keep reusable compiler options in the base and let consumers override project-specific settings. Tooling configuration lives at the root: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, and `.prettierignore`. Editor recommendations and workspace defaults are under `.vscode/`. The `test/` directory contains the Vitest test entry; parallel consumer fixtures live under `test/fixtures/bundler/` and `test/fixtures/nestjs/`. Tests cover package resolution, ESM/CommonJS compilation, and decorator metadata.
 
 ## Build, Test, and Development Commands
 
@@ -25,7 +25,7 @@ Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line end
 
 ## Testing Guidelines
 
-Tests use Vitest and the existing TypeScript dependency; no coverage threshold is configured. Treat `pnpm check` as the required baseline. Preserve the original package-resolution fixture and keep additional fixtures focused on compiler behavior. Package tests must verify both published configurations and compile ESM/CommonJS consumers through the package name. Verify runtime decorator metadata and constructor parameter properties without requiring a full NestJS installation. Keep generated output outside the repository and clean up temporary directories even when tests fail.
+Tests use Vitest and the existing TypeScript dependency; no coverage threshold is configured. Treat `pnpm check` as the required baseline. Keep Bundler and NestJS consumer fixtures in their respective directories under `test/fixtures/`, with test entries separate from fixture source. Keep fixtures focused on compiler behavior. Package tests must verify both published configurations and compile ESM/CommonJS consumers through the package name. Verify runtime decorator metadata and constructor parameter properties without requiring a full NestJS installation. Keep generated output outside the repository and clean up temporary directories even when tests fail.
 
 ## Commit & Pull Request Guidelines
 

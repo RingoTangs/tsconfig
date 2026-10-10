@@ -112,7 +112,10 @@ it('bundler consumer resolves the package and emits no files', () => {
     compilerOptions: { outDir: './dist' },
     include: ['index.ts'],
   })
-  cpSync(join(repository, 'test/index.ts'), join(directory, 'index.ts'))
+  cpSync(
+    join(repository, 'test/fixtures/bundler/index.ts'),
+    join(directory, 'index.ts'),
+  )
   const { options } = compile(directory)
   expect(options.module).toBe(ts.ModuleKind.ESNext)
   expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.Bundler)
