@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import {
   cpSync,
@@ -11,9 +10,9 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { after, before, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
+import { afterAll, beforeAll, expect, it } from 'vitest'
 
 const repository = fileURLToPath(new URL('../', import.meta.url))
 let temporaryDirectory
@@ -28,7 +27,7 @@ function compile(directory) {
     join(directory, 'tsconfig.json'),
     ts.sys.readFile,
   )
-  assert.equal(configFile.error, undefined)
+  expect(configFile.error).toBeUndefined()
   const config = ts.parseJsonConfigFileContent(
     configFile.config,
     ts.sys,
@@ -41,19 +40,18 @@ function compile(directory) {
     ...ts.getPreEmitDiagnostics(program),
     ...emit.diagnostics,
   ]
-  assert.equal(
-    diagnostics.length,
-    0,
+  expect(
+    diagnostics,
     ts.formatDiagnosticsWithColorAndContext(diagnostics, {
       getCurrentDirectory: () => directory,
       getCanonicalFileName: (filename) => filename,
       getNewLine: () => '\n',
     }),
-  )
+  ).toEqual([])
   return { options: config.options, emit }
 }
 
-before(() => {
+beforeAll(() => {
   temporaryDirectory = mkdtempSync(join(tmpdir(), 'ringotangs-tsconfig-'))
   const output = execFileSync(
     'npm',
@@ -68,9 +66,9 @@ before(() => {
   )
   const [packed] = JSON.parse(output)
   const files = packed.files.map((file) => file.path)
-  assert.ok(files.includes('src/tsconfig.base.json'))
-  assert.ok(files.includes('src/tsconfig.nestjs.json'))
-  assert.ok(!files.some((file) => file.startsWith('test/')))
+  expect(files).toContain('src/tsconfig.base.json')
+  expect(files).toContain('src/tsconfig.nestjs.json')
+  expect(files.some((file) => file.startsWith('test/'))).toBe(false)
 
   const packageDirectory = join(
     temporaryDirectory,
@@ -86,13 +84,13 @@ before(() => {
   ])
 })
 
-after(() => {
+afterAll(() => {
   if (temporaryDirectory) {
     rmSync(temporaryDirectory, { recursive: true, force: true })
   }
 })
 
-test('packed package exports both configurations', () => {
+it('packed package exports both configurations', () => {
   const packageDirectory = join(
     temporaryDirectory,
     'node_modules/@ringotangs/tsconfig',
@@ -100,14 +98,14 @@ test('packed package exports both configurations', () => {
   const manifest = JSON.parse(
     readFileSync(join(packageDirectory, 'package.json'), 'utf8'),
   )
-  assert.equal(manifest.exports['.'], './src/tsconfig.base.json')
-  assert.equal(manifest.exports['./nestjs'], './src/tsconfig.nestjs.json')
+  expect(manifest.exports['.']).toBe('./src/tsconfig.base.json')
+  expect(manifest.exports['./nestjs']).toBe('./src/tsconfig.nestjs.json')
   for (const configuration of Object.values(manifest.exports)) {
-    assert.ok(existsSync(join(packageDirectory, configuration)))
+    expect(existsSync(join(packageDirectory, configuration))).toBe(true)
   }
 })
 
-test('Bundler consumer resolves the package and emits no files', () => {
+it('bundler consumer resolves the package and emits no files', () => {
   const directory = join(temporaryDirectory, 'bundler')
   writeJson(join(directory, 'tsconfig.json'), {
     extends: '@ringotangs/tsconfig',
@@ -116,17 +114,18 @@ test('Bundler consumer resolves the package and emits no files', () => {
   })
   cpSync(join(repository, 'test/index.ts'), join(directory, 'index.ts'))
   const { options } = compile(directory)
-  assert.equal(options.module, ts.ModuleKind.ESNext)
-  assert.equal(options.moduleResolution, ts.ModuleResolutionKind.Bundler)
-  assert.equal(options.isolatedModules, true)
-  assert.equal(options.verbatimModuleSyntax, true)
-  assert.equal(options.erasableSyntaxOnly, true)
-  assert.equal(options.noEmit, true)
-  assert.ok(!existsSync(join(directory, 'dist')))
+  expect(options.module).toBe(ts.ModuleKind.ESNext)
+  expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.Bundler)
+  expect(options.isolatedModules).toBe(true)
+  expect(options.verbatimModuleSyntax).toBe(true)
+  expect(options.erasableSyntaxOnly).toBe(true)
+  expect(options.noEmit).toBe(true)
+  expect(existsSync(join(directory, 'dist'))).toBe(false)
 })
 
-for (const mode of ['module', 'commonjs']) {
-  test(`NestJS ${mode} consumer emits runnable code with dependency metadata`, () => {
+it.each(['module', 'commonjs'])(
+  'nestjs %s consumer emits runnable code with dependency metadata',
+  (mode) => {
     const directory = join(temporaryDirectory, mode)
     writeJson(join(directory, 'package.json'), { type: mode })
     writeJson(join(directory, 'tsconfig.json'), {
@@ -138,27 +137,27 @@ for (const mode of ['module', 'commonjs']) {
       recursive: true,
     })
     const { options, emit } = compile(directory)
-    assert.equal(emit.emitSkipped, false)
-    assert.equal(options.noEmit, false)
-    assert.equal(options.module, ts.ModuleKind.NodeNext)
-    assert.equal(options.moduleResolution, ts.ModuleResolutionKind.NodeNext)
-    assert.equal(options.isolatedModules, true)
-    assert.equal(options.target, ts.ScriptTarget.ES2020)
-    assert.deepEqual(options.lib, ['lib.es2020.d.ts'])
-    assert.equal(options.verbatimModuleSyntax, false)
-    assert.equal(options.erasableSyntaxOnly, false)
+    expect(emit.emitSkipped).toBe(false)
+    expect(options.noEmit).toBe(false)
+    expect(options.module).toBe(ts.ModuleKind.NodeNext)
+    expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.NodeNext)
+    expect(options.isolatedModules).toBe(true)
+    expect(options.target).toBe(ts.ScriptTarget.ES2020)
+    expect(options.lib).toEqual(['lib.es2020.d.ts'])
+    expect(options.verbatimModuleSyntax).toBe(false)
+    expect(options.erasableSyntaxOnly).toBe(false)
     const filename = join(directory, 'dist/consumer.js')
     const javascript = readFileSync(filename, 'utf8')
-    assert.ok(existsSync(join(directory, 'dist/service.js')))
-    assert.ok(existsSync(`${filename}.map`))
-    assert.match(javascript, /design:paramtypes/)
+    expect(existsSync(join(directory, 'dist/service.js'))).toBe(true)
+    expect(existsSync(`${filename}.map`)).toBe(true)
+    expect(javascript).toMatch(/design:paramtypes/)
     if (mode === 'module') {
-      assert.match(javascript, /import .* from ['"]\.\/service\.js['"]/)
-      assert.match(javascript, /export/)
-      assert.doesNotMatch(javascript, /require\(/)
+      expect(javascript).toMatch(/import .* from ['"]\.\/service\.js['"]/)
+      expect(javascript).toMatch(/export/)
+      expect(javascript).not.toMatch(/require\(/)
     } else {
-      assert.match(javascript, /require\(['"]\.\/service\.js['"]\)/)
-      assert.match(javascript, /exports\.Consumer/)
+      expect(javascript).toMatch(/require\(['"]\.\/service\.js['"]\)/)
+      expect(javascript).toMatch(/exports\.Consumer/)
     }
 
     // Capture the emitted metadata without adding a reflection library dependency.
@@ -181,5 +180,5 @@ for (const mode of ['module', 'commonjs']) {
       ],
       { cwd: directory, encoding: 'utf8' },
     )
-  })
-}
+  },
+)

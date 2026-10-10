@@ -12,7 +12,7 @@ Use pnpm 10, matching the `packageManager` field and committed `pnpm-lock.yaml`.
 - `pnpm lint` checks repository files with ESLint and the Antfu configuration.
 - `pnpm format` verifies Prettier formatting without changing files.
 - `pnpm typecheck` verifies that TypeScript can load the shared configuration through the package name.
-- `pnpm test` runs lightweight Node.js tests against the packed package and temporary consumers.
+- `pnpm test` runs Vitest tests against the packed package and temporary consumers.
 - `pnpm check` runs lint, formatting, type-checking, and automated tests; run it before opening a pull request.
 - `pnpm check:fix` applies ESLint and Prettier fixes.
 - `pnpm pack:check` previews the npm package file list.
@@ -25,7 +25,7 @@ Follow `.editorconfig` and `.prettierrc`: use two-space indentation, LF line end
 
 ## Testing Guidelines
 
-Tests use Node.js's built-in test runner and the existing TypeScript dependency; no external test framework or coverage threshold is configured. Treat `pnpm check` as the required baseline. Preserve the original package-resolution fixture and keep additional fixtures focused on compiler behavior. Package tests must verify both published configurations and compile ESM/CommonJS consumers through the package name. Verify runtime decorator metadata and constructor parameter properties without requiring a full NestJS installation. Keep generated output outside the repository and clean up temporary directories even when tests fail.
+Tests use Vitest and the existing TypeScript dependency; no coverage threshold is configured. Treat `pnpm check` as the required baseline. Preserve the original package-resolution fixture and keep additional fixtures focused on compiler behavior. Package tests must verify both published configurations and compile ESM/CommonJS consumers through the package name. Verify runtime decorator metadata and constructor parameter properties without requiring a full NestJS installation. Keep generated output outside the repository and clean up temporary directories even when tests fail.
 
 ## Commit & Pull Request Guidelines
 

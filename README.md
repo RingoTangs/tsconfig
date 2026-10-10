@@ -106,7 +106,7 @@ The base also enables `erasableSyntaxOnly`, disallowing constructs that require 
 
 ## Validation
 
-`pnpm check` runs linting, formatting, the original consumer type check, and lightweight Node.js tests. The tests pack the actual npm package, resolve both entries from temporary consumer projects, and compile and execute NestJS-style ESM/CommonJS fixtures to verify decorator metadata and parameter properties. They do not start a NestJS server. Build output and tarballs stay in temporary directories and are cleaned up after testing.
+`pnpm check` runs linting, formatting, the original consumer type check, and Vitest tests. The tests pack the actual npm package, resolve both entries from temporary consumer projects, and compile and execute NestJS-style ESM/CommonJS fixtures to verify decorator metadata and parameter properties. They do not start a NestJS server. Build output and tarballs stay in temporary directories and are cleaned up after testing.
 
 `pnpm pack:check` also previews the published file list without creating a tarball in the repository.
 
