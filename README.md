@@ -1,5 +1,7 @@
 # @ringotangs/tsconfig
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Shared TypeScript configurations for Bundler and NestJS projects. Requires TypeScript 5.8 or newer.
 
 | Entry                          | Use                                                                                |
