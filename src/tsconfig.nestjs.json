@@ -1,16 +1,36 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    /* 生成装饰器类型元数据，供 NestJS 依赖注入等功能使用。 */
     "emitDecoratorMetadata": true,
+    /* 启用 NestJS 使用的传统装饰器语法，包括构造函数和方法的参数装饰器。 */
     "experimentalDecorators": true,
+    /*
+     * 按 Node 模块规则生成代码，结合文件扩展名和项目 package.json 中的 type，
+     * 判断输出 ES 模块还是 CommonJS 模块。
+     */
     "module": "NodeNext",
+    /*
+     * 按 Node 模块规则解析导入，支持 package.json 中的 exports 和 imports。
+     * 原生 ES 模块的相对导入通常需要写出 .js 扩展名。
+     */
     "moduleResolution": "NodeNext",
+    /* 允许 DTO 和框架注入的属性不在构造函数中初始化，其他严格类型检查仍然生效。 */
     "strictPropertyInitialization": false,
+    /* 覆盖基础配置，允许生成 JavaScript 等产物；输出目录由项目通过 outDir 指定。 */
     "noEmit": false,
+    /* 生成源码映射，方便调试时定位到原始 TypeScript 代码。 */
     "sourceMap": true,
+    /* 改善与 CommonJS 模块的导入兼容性，例如使用默认导入加载这类模块。 */
     "esModuleInterop": true,
+    /* 检查代码是否适合逐文件转译，便于配合 SWC 等工具；不会自行切换编译器。 */
     "isolatedModules": true,
+    /* 允许 TypeScript 省略仅用于类型的导入，并按目标模块格式转换导入导出语法。 */
     "verbatimModuleSyntax": false,
+    /*
+     * 允许需要生成运行时代码的 TypeScript 语法。
+     * 例如 NestJS 常用的构造函数参数属性：constructor(private readonly service: UserService)。
+     */
     "erasableSyntaxOnly": false
   }
 }
