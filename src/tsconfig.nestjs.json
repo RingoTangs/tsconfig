@@ -1,25 +1,15 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    // Node.js 模块解析
-    "target": "ES2023",
-    "lib": ["ES2023"],
-
     "emitDecoratorMetadata": true,
-    // NestJS 装饰器与依赖注入
     "experimentalDecorators": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
-    // 允许 DTO 等类属性通过其他机制初始化
     "strictPropertyInitialization": false,
     "declaration": true,
-
-    // 允许 TypeScript 编译输出
     "noEmit": false,
     "sourceMap": true,
-
-    // 模块与编译兼容性
     "esModuleInterop": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
