@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 import { afterAll, beforeAll, expect, it } from 'vitest'
@@ -135,6 +135,7 @@ it.each(['module', 'commonjs'])(
     })
     cpSync(join(repository, 'test/fixtures/nestjs'), join(directory, 'src'), {
       recursive: true,
+      filter: (source) => basename(source) !== 'tsconfig.json',
     })
     const { options, emit } = compile(directory)
     expect(emit.emitSkipped).toBe(false)
