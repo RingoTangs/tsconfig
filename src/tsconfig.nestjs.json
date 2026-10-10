@@ -22,7 +22,7 @@
     /* 允许 DTO 和框架注入的属性不在构造函数中初始化，其他严格类型检查仍然生效。 */
     "strictPropertyInitialization": false,
 
-    /* 覆盖基础配置，允许生成 JavaScript 等产物；输出目录由项目通过 outDir 指定。 */
+    /* 允许生成 JavaScript 等产物；输出目录由项目通过 outDir 指定。 */
     "noEmit": false,
 
     /* 生成源码映射，方便调试时定位到原始 TypeScript 代码。 */

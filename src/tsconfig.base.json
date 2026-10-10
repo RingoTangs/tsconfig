@@ -19,12 +19,6 @@
      */
     "useDefineForClassFields": true,
 
-    /* 保留现代 ES 模块语法，默认交由 bundler 或其他构建工具处理。 */
-    "module": "ESNext",
-
-    /* 使用 bundler 模块解析策略；原生 Node ESM 等项目可在子项目中覆盖。 */
-    "moduleResolution": "bundler",
-
     /* 开启严格类型检查，例如检查空值和无法推断类型的参数。 */
     "strict": true,
 
@@ -37,25 +31,8 @@
     /* 报告未使用的函数参数；以 _ 开头的参数可以保留。 */
     "noUnusedParameters": true,
 
-    /* 默认只检查类型；JavaScript、声明文件等产物由项目构建流程生成，需要 tsc emit 时可覆盖。 */
-    "noEmit": true,
-
     /* 检查代码是否适合 esbuild、SWC、Babel 等工具的单文件转译方式。 */
     "isolatedModules": true,
-
-    /*
-     * 输出时删除带 type 修饰的导入导出，并保留其余模块语法。
-     * 不再根据类型用法省略导入，也不将 ES 模块语法改写为其他格式。
-     */
-    "verbatimModuleSyntax": true,
-
-    /*
-     * 禁止大多数需要 TypeScript 生成运行时代码的专有语法，
-     * 包括 enum、带值的 namespace、构造函数参数属性和 import = / export =。
-     * 例如：const count: number = 0 可以，去掉 : number 后仍是正常代码。
-     * enum Status { Ready, Done } 不可以，因为它需要转换成额外的 JavaScript 代码。
-     */
-    "erasableSyntaxOnly": true,
 
     /* 跳过声明文件内部的类型检查以提速，业务源码仍正常检查。 */
     "skipLibCheck": true,

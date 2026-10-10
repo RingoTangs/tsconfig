@@ -22,13 +22,15 @@
   "publishConfig": {
     "access": "public"
   },
-  "tsconfig": "./src/tsconfig.base.json",
+  "tsconfig": "./src/tsconfig.bundler.json",
   "exports": {
-    ".": "./src/tsconfig.base.json",
+    ".": "./src/tsconfig.bundler.json",
+    "./bundler": "./src/tsconfig.bundler.json",
     "./nestjs": "./src/tsconfig.nestjs.json"
   },
   "files": [
     "src/tsconfig.base.json",
+    "src/tsconfig.bundler.json",
     "src/tsconfig.nestjs.json"
   ],
   "scripts": {

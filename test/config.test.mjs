@@ -67,6 +67,7 @@ beforeAll(() => {
   const [packed] = JSON.parse(output)
   const files = packed.files.map((file) => file.path)
   expect(files).toContain('src/tsconfig.base.json')
+  expect(files).toContain('src/tsconfig.bundler.json')
   expect(files).toContain('src/tsconfig.nestjs.json')
   expect(files.some((file) => file.startsWith('test/'))).toBe(false)
 
@@ -90,7 +91,7 @@ afterAll(() => {
   }
 })
 
-it('packed package exports both configurations', () => {
+it('packed package exports both presets with their shared base', () => {
   const packageDirectory = join(
     temporaryDirectory,
     'node_modules/@ringotangs/tsconfig',
@@ -98,33 +99,54 @@ it('packed package exports both configurations', () => {
   const manifest = JSON.parse(
     readFileSync(join(packageDirectory, 'package.json'), 'utf8'),
   )
-  expect(manifest.exports['.']).toBe('./src/tsconfig.base.json')
+  expect(manifest.tsconfig).toBe('./src/tsconfig.bundler.json')
+  expect(manifest.exports['.']).toBe('./src/tsconfig.bundler.json')
+  expect(manifest.exports['./bundler']).toBe('./src/tsconfig.bundler.json')
   expect(manifest.exports['./nestjs']).toBe('./src/tsconfig.nestjs.json')
   for (const configuration of Object.values(manifest.exports)) {
     expect(existsSync(join(packageDirectory, configuration))).toBe(true)
   }
 })
 
-it('bundler consumer resolves the package and emits no files', () => {
-  const directory = join(temporaryDirectory, 'bundler')
-  writeJson(join(directory, 'tsconfig.json'), {
-    extends: '@ringotangs/tsconfig',
-    compilerOptions: { outDir: './dist' },
-    include: ['index.ts'],
-  })
-  cpSync(
-    join(repository, 'test/fixtures/bundler/index.ts'),
-    join(directory, 'index.ts'),
-  )
-  const { options } = compile(directory)
-  expect(options.module).toBe(ts.ModuleKind.ESNext)
-  expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.Bundler)
-  expect(options.isolatedModules).toBe(true)
-  expect(options.verbatimModuleSyntax).toBe(true)
-  expect(options.erasableSyntaxOnly).toBe(true)
-  expect(options.noEmit).toBe(true)
-  expect(existsSync(join(directory, 'dist'))).toBe(false)
-})
+it.each(['@ringotangs/tsconfig', '@ringotangs/tsconfig/bundler'])(
+  'bundler consumer resolves %s and emits no files',
+  (entry) => {
+    const directory = join(
+      temporaryDirectory,
+      entry.endsWith('/bundler') ? 'bundler-explicit' : 'bundler-default',
+    )
+    writeJson(join(directory, 'tsconfig.json'), {
+      extends: entry,
+      compilerOptions: { outDir: './dist' },
+      include: ['index.ts'],
+    })
+    cpSync(
+      join(repository, 'test/fixtures/bundler/index.ts'),
+      join(directory, 'index.ts'),
+    )
+    const { options } = compile(directory)
+    const equivalent = ts.parseJsonConfigFileContent(
+      {
+        extends: entry.endsWith('/bundler')
+          ? '@ringotangs/tsconfig'
+          : '@ringotangs/tsconfig/bundler',
+        compilerOptions: { outDir: './dist' },
+        include: ['index.ts'],
+      },
+      ts.sys,
+      directory,
+    )
+    expect(equivalent.errors).toEqual([])
+    expect(options).toEqual(equivalent.options)
+    expect(options.module).toBe(ts.ModuleKind.ESNext)
+    expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.Bundler)
+    expect(options.isolatedModules).toBe(true)
+    expect(options.verbatimModuleSyntax).toBe(true)
+    expect(options.erasableSyntaxOnly).toBe(true)
+    expect(options.noEmit).toBe(true)
+    expect(existsSync(join(directory, 'dist'))).toBe(false)
+  },
+)
 
 it.each(['module', 'commonjs'])(
   'nestjs %s consumer emits runnable code with dependency metadata',
