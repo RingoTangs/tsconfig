@@ -5,9 +5,12 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -15,6 +18,7 @@ import ts from 'typescript'
 import { afterAll, beforeAll, expect, it } from 'vitest'
 
 const repository = fileURLToPath(new URL('../', import.meta.url))
+const require = createRequire(import.meta.url)
 let temporaryDirectory
 
 function writeJson(filename, value) {
@@ -69,6 +73,8 @@ beforeAll(() => {
   expect(files).toContain('src/tsconfig.base.json')
   expect(files).toContain('src/tsconfig.bundler.json')
   expect(files).toContain('src/tsconfig.nestjs.json')
+  expect(files).toContain('src/tsconfig.react.json')
+  expect(files).toContain('src/tsconfig.nodejs.json')
   expect(files.some((file) => file.startsWith('test/'))).toBe(false)
 
   const packageDirectory = join(
@@ -83,6 +89,15 @@ beforeAll(() => {
     packageDirectory,
     '--strip-components=1',
   ])
+  const typesDirectory = join(temporaryDirectory, 'node_modules/@types')
+  mkdirSync(typesDirectory, { recursive: true })
+  for (const name of ['react', 'node']) {
+    symlinkSync(
+      dirname(realpathSync(require.resolve(`@types/${name}/package.json`))),
+      join(typesDirectory, name),
+      'dir',
+    )
+  }
 })
 
 afterAll(() => {
@@ -91,7 +106,7 @@ afterAll(() => {
   }
 })
 
-it('packed package exports both presets with their shared base', () => {
+it('packed package exports all presets with their shared base', () => {
   const packageDirectory = join(
     temporaryDirectory,
     'node_modules/@ringotangs/tsconfig',
@@ -103,6 +118,8 @@ it('packed package exports both presets with their shared base', () => {
   expect(manifest.exports['.']).toBe('./src/tsconfig.bundler.json')
   expect(manifest.exports['./bundler']).toBe('./src/tsconfig.bundler.json')
   expect(manifest.exports['./nestjs']).toBe('./src/tsconfig.nestjs.json')
+  expect(manifest.exports['./react']).toBe('./src/tsconfig.react.json')
+  expect(manifest.exports['./nodejs']).toBe('./src/tsconfig.nodejs.json')
   for (const configuration of Object.values(manifest.exports)) {
     expect(existsSync(join(packageDirectory, configuration))).toBe(true)
   }
@@ -202,6 +219,79 @@ it.each(['module', 'commonjs'])(
       const { Service } = await import('./dist/service.js')
       assert.deepEqual(metadata.get(Consumer), [Service])
       assert.equal(new Consumer(new Service()).getMessage(), 'ok')
+    `,
+      ],
+      { cwd: directory, encoding: 'utf8' },
+    )
+  },
+)
+
+it('react consumer checks JSX and browser types without output', () => {
+  const directory = join(temporaryDirectory, 'react')
+  writeJson(join(directory, 'tsconfig.json'), {
+    extends: '@ringotangs/tsconfig/react',
+    compilerOptions: { outDir: './dist' },
+    include: ['src'],
+  })
+  cpSync(join(repository, 'test/fixtures/react'), join(directory, 'src'), {
+    recursive: true,
+    filter: (source) => basename(source) !== 'tsconfig.json',
+  })
+  const { options } = compile(directory)
+  expect(options.jsx).toBe(ts.JsxEmit.ReactJSX)
+  expect(options.lib).toEqual([
+    'lib.es2020.d.ts',
+    'lib.dom.d.ts',
+    'lib.dom.iterable.d.ts',
+  ])
+  expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.Bundler)
+  expect(options.noEmit).toBe(true)
+  expect(existsSync(join(directory, 'dist'))).toBe(false)
+})
+
+it.each(['module', 'commonjs'])(
+  'nodejs %s consumer checks types and supports optional compilation',
+  (mode) => {
+    const directory = join(temporaryDirectory, `nodejs-${mode}`)
+    writeJson(join(directory, 'package.json'), { type: mode })
+    const config = {
+      extends: '@ringotangs/tsconfig/nodejs',
+      compilerOptions: { rootDir: './src', outDir: './dist' },
+      include: ['src'],
+    }
+    writeJson(join(directory, 'tsconfig.json'), config)
+    cpSync(join(repository, 'test/fixtures/nodejs'), join(directory, 'src'), {
+      recursive: true,
+      filter: (source) => basename(source) !== 'tsconfig.json',
+    })
+    const { options } = compile(directory)
+    expect(options.noEmit).toBe(true)
+    expect(options.module).toBe(ts.ModuleKind.NodeNext)
+    expect(options.moduleResolution).toBe(ts.ModuleResolutionKind.NodeNext)
+    expect(options.lib).toEqual(['lib.es2020.d.ts'])
+    expect(options.experimentalDecorators).toBeUndefined()
+    expect(existsSync(join(directory, 'dist'))).toBe(false)
+    config.compilerOptions.noEmit = false
+    writeJson(join(directory, 'tsconfig.json'), config)
+    const { emit } = compile(directory)
+    expect(emit.emitSkipped).toBe(false)
+    const javascript = readFileSync(join(directory, 'dist/index.js'), 'utf8')
+    expect(javascript).toMatch(
+      mode === 'module'
+        ? /import .* from ['"]node:path['"]/
+        : /require\(['"]node:path['"]\)/,
+    )
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `
+      import assert from 'node:assert/strict'
+      const { result, runtime, buffer } = await import('./dist/index.js')
+      assert.equal(result, 'example.txt:ready')
+      assert.equal(runtime, process.version)
+      assert.equal(buffer, 'ok')
     `,
       ],
       { cwd: directory, encoding: 'utf8' },

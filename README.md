@@ -2,12 +2,14 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Shared TypeScript configurations for Bundler and NestJS projects. Requires TypeScript 5.8 or newer.
+Shared TypeScript configurations for Bundler, React, Node.js, and NestJS projects. Requires TypeScript 5.8 or newer.
 
 | Entry                          | Use                                                                                |
 | ------------------------------ | ---------------------------------------------------------------------------------- |
 | `@ringotangs/tsconfig`         | Default Bundler configuration for Vite, Vue, React, and TypeScript libraries       |
 | `@ringotangs/tsconfig/bundler` | Same configuration, with an explicit Bundler entry                                 |
+| `@ringotangs/tsconfig/react`   | Browser React projects with automatic JSX runtime and DOM types                    |
+| `@ringotangs/tsconfig/nodejs`  | NodeNext ESM/CommonJS, with type checking only by default                          |
 | `@ringotangs/tsconfig/nestjs`  | NestJS configuration with NodeNext, traditional decorators, and decorator metadata |
 
 ## Bundler
@@ -27,9 +29,41 @@ Create `tsconfig.json`:
 }
 ```
 
-You can also use `"extends": "@ringotangs/tsconfig/bundler"`. Both entries check types without emitting files; your build tool handles JavaScript output.
+You can also use `"extends": "@ringotangs/tsconfig/bundler"`. Both Bundler entries check types without emitting files; your build tool handles JavaScript output.
 
-Both presets default to ES2020 for `target` and `lib`. Override compiler options to match your project. Browser projects can add `"lib": ["ES2020", "DOM", "DOM.Iterable"]`; configure JSX and framework-specific options as needed.
+All presets default to ES2020 for `target` and `lib`. Override compiler options to match your project. Browser projects can add `"lib": ["ES2020", "DOM", "DOM.Iterable"]`; configure JSX and framework-specific options as needed.
+
+## React
+
+For browser React projects using a Bundler, install React types alongside your existing React dependencies:
+
+```sh
+pnpm add -D @ringotangs/tsconfig typescript @types/react @types/react-dom
+```
+
+```json
+{
+  "extends": "@ringotangs/tsconfig/react",
+  "include": ["src"]
+}
+```
+
+This preset adds DOM types and `jsx: "react-jsx"` to the Bundler settings. It checks types without emitting files. Frameworks that handle JSX themselves can override `jsx` to `"preserve"`; Vite and test framework types remain project settings.
+
+## Node.js
+
+```sh
+pnpm add -D @ringotangs/tsconfig typescript @types/node
+```
+
+```json
+{
+  "extends": "@ringotangs/tsconfig/nodejs",
+  "include": ["src"]
+}
+```
+
+Node.js uses NodeNext and defaults to type checking only. To compile with `tsc`, set `"noEmit": false` and an `outDir` in `compilerOptions`. Output directories, source maps, declaration files, and test types are project settings. This preset does not configure native TypeScript execution in Node.js.
 
 ## NestJS
 
@@ -57,7 +91,7 @@ This preset enables JavaScript and source map output. Set your own output direct
 
 ### ESM and CommonJS
 
-NodeNext uses your project's `package.json` to determine the module format for ordinary `.ts` files:
+Both Node.js and NestJS use NodeNext. NodeNext uses your project's `package.json` to determine the module format for ordinary `.ts` files:
 
 - `"type": "module"`: ESM.
 - `"type": "commonjs"` or no `type` field: CommonJS.
@@ -90,13 +124,13 @@ To require property initialization, add `strictPropertyInitialization: true` to 
 
 ## Key options
 
-| Option                 | Purpose                                                                                                       | Bundler | NestJS  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| `isolatedModules`      | Checks for code that tools such as esbuild, SWC, or Babel cannot safely compile one file at a time.           | `true`  | `true`  |
-| `verbatimModuleSyntax` | When enabled, preserves imports and exports without a `type` modifier and prevents conversion to CommonJS.    | `true`  | `false` |
-| `erasableSyntaxOnly`   | Rejects TypeScript features that need extra runtime code, such as enums and constructor parameter properties. | `true`  | `false` |
+| Option                 | Purpose                                                                                                       | Bundler / React | Node.js / NestJS |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | --------------- | ---------------- |
+| `isolatedModules`      | Checks for code that tools such as esbuild, SWC, or Babel cannot safely compile one file at a time.           | `true`          | `true`           |
+| `verbatimModuleSyntax` | When enabled, preserves imports and exports without a `type` modifier and prevents conversion to CommonJS.    | `true`          | `false`          |
+| `erasableSyntaxOnly`   | Rejects TypeScript features that need extra runtime code, such as enums and constructor parameter properties. | `true`          | `false`          |
 
-Use type-only imports for types in Bundler projects. NestJS allows CommonJS conversion and constructor parameter properties; keep ordinary imports for service and DTO classes used in runtime metadata.
+Use type-only imports for types in Bundler and React projects. NestJS allows CommonJS conversion and constructor parameter properties; keep ordinary imports for service and DTO classes used in runtime metadata.
 
 `isolatedModules` does not enable decorator metadata in other compilers. If you build NestJS with SWC or another compiler, configure its decorator and metadata support separately.
 

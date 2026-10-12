@@ -2,12 +2,14 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-适用于 Bundler 和 NestJS 项目的共享 TypeScript 配置。需要 TypeScript 5.8 或更高版本。
+适用于 Bundler、React、Node.js 和 NestJS 项目的共享 TypeScript 配置。需要 TypeScript 5.8 或更高版本。
 
 | 入口                           | 用途                                                            |
 | ------------------------------ | --------------------------------------------------------------- |
 | `@ringotangs/tsconfig`         | 默认 Bundler 配置，适用于 Vite、Vue、React 和 TypeScript 工具库 |
 | `@ringotangs/tsconfig/bundler` | 与默认配置相同，显式指定 Bundler 入口                           |
+| `@ringotangs/tsconfig/react`   | 浏览器 React 项目，支持自动 JSX runtime 和 DOM 类型             |
+| `@ringotangs/tsconfig/nodejs`  | NodeNext ESM/CommonJS，默认只检查类型                           |
 | `@ringotangs/tsconfig/nestjs`  | NestJS 配置，支持 NodeNext、传统装饰器和装饰器元数据            |
 
 ## Bundler
@@ -29,7 +31,39 @@ pnpm add -D @ringotangs/tsconfig typescript
 
 也可以使用 `"extends": "@ringotangs/tsconfig/bundler"`。两个入口都只检查类型，不生成文件；JavaScript 输出由构建工具负责。
 
-两个预设的 `target` 和 `lib` 默认均为 ES2020，可按项目需要覆盖。浏览器项目可以添加 `"lib": ["ES2020", "DOM", "DOM.Iterable"]`；JSX 和框架专属选项也由项目自行配置。
+所有预设的 `target` 和 `lib` 默认均为 ES2020，可按项目需要覆盖。浏览器项目可以添加 `"lib": ["ES2020", "DOM", "DOM.Iterable"]`；JSX 和框架专属选项也由项目自行配置。
+
+## React
+
+浏览器 React 项目使用 Bundler 时，在现有 React 依赖之外安装类型包：
+
+```sh
+pnpm add -D @ringotangs/tsconfig typescript @types/react @types/react-dom
+```
+
+```json
+{
+  "extends": "@ringotangs/tsconfig/react",
+  "include": ["src"]
+}
+```
+
+该预设在 Bundler 配置上添加 DOM 类型和 `jsx: "react-jsx"`，只检查类型，不生成文件。由框架处理 JSX 时可覆盖为 `"preserve"`；Vite 和测试框架类型仍由项目配置。
+
+## Node.js
+
+```sh
+pnpm add -D @ringotangs/tsconfig typescript @types/node
+```
+
+```json
+{
+  "extends": "@ringotangs/tsconfig/nodejs",
+  "include": ["src"]
+}
+```
+
+Node.js 使用 NodeNext，默认只检查类型。需要通过 `tsc` 编译时，在 `compilerOptions` 中设置 `"noEmit": false` 和 `outDir`。输出目录、源码映射、声明文件及测试类型由项目配置。该预设不负责配置 Node.js 原生 TypeScript 执行。
 
 ## NestJS
 
@@ -57,7 +91,7 @@ pnpm add -D @ringotangs/tsconfig typescript @types/node
 
 ### ESM 和 CommonJS
 
-NodeNext 根据项目的 `package.json` 判断普通 `.ts` 文件的模块格式：
+Node.js 和 NestJS 均使用 NodeNext。NodeNext 根据项目的 `package.json` 判断普通 `.ts` 文件的模块格式：
 
 - `"type": "module"`：ESM。
 - `"type": "commonjs"` 或未设置 `type`：CommonJS。
@@ -90,13 +124,13 @@ NestJS 默认设置 `strictPropertyInitialization: false`，因为 DTO 和注入
 
 ## 关键选项
 
-| 选项                   | 作用                                                                       | Bundler | NestJS  |
-| ---------------------- | -------------------------------------------------------------------------- | ------- | ------- |
-| `isolatedModules`      | 检查是否使用了 esbuild、SWC、Babel 等工具无法安全逐文件编译的代码。        | `true`  | `true`  |
-| `verbatimModuleSyntax` | 开启后保留未标记 `type` 的导入导出，不将其转换为 CommonJS。                | `true`  | `false` |
-| `erasableSyntaxOnly`   | 禁止需要生成额外运行时代码的 TypeScript 特性，例如枚举和构造函数参数属性。 | `true`  | `false` |
+| 选项                   | 作用                                                                       | Bundler / React | Node.js / NestJS |
+| ---------------------- | -------------------------------------------------------------------------- | --------------- | ---------------- |
+| `isolatedModules`      | 检查是否使用了 esbuild、SWC、Babel 等工具无法安全逐文件编译的代码。        | `true`          | `true`           |
+| `verbatimModuleSyntax` | 开启后保留未标记 `type` 的导入导出，不将其转换为 CommonJS。                | `true`          | `false`          |
+| `erasableSyntaxOnly`   | 禁止需要生成额外运行时代码的 TypeScript 特性，例如枚举和构造函数参数属性。 | `true`          | `false`          |
 
-Bundler 项目中，导入类型时使用类型专用导入。NestJS 允许 CommonJS 转换和构造函数参数属性；参与运行时元数据的服务类和 DTO 类应保留普通导入。
+Bundler 和 React 项目中，导入类型时使用类型专用导入。NestJS 允许 CommonJS 转换和构造函数参数属性；参与运行时元数据的服务类和 DTO 类应保留普通导入。
 
 `isolatedModules` 不会为其他编译器开启装饰器元数据。如果使用 SWC 等编译器构建 NestJS，需要单独配置装饰器和元数据支持。
 

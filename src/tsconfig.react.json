@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.bundler.json",
+  "compilerOptions": {
+    /* 使用 React 自动 JSX runtime；实际输出仍由构建工具负责。 */
+    "jsx": "react-jsx",
+    /* 补充浏览器 API 和可迭代 DOM 集合的类型。 */
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    /* 根据文件扩展名和 package.json 的 type 判断 ESM 或 CommonJS 模块格式。 */
+    "module": "NodeNext",
+
+    /* 按 Node 模块规则解析导入；原生 ESM 的相对导入需要产物扩展名。 */
+    "moduleResolution": "NodeNext",
+
+    /* 默认只检查类型；需要 tsc 输出时，由项目覆盖为 false 并设置 outDir。 */
+    "noEmit": true,
+
+    /* 改善与 CommonJS 模块的导入兼容性。 */
+    "esModuleInterop": true,
+
+    /* 允许省略类型导入，并在 CommonJS 模式下转换 ES 导入导出语法。 */
+    "verbatimModuleSyntax": false,
+
+    /* 允许枚举、构造函数参数属性等需要生成运行时代码的 TypeScript 语法。 */
+    "erasableSyntaxOnly": false
+  }
+}
